@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
+    <title>Webcam Recorder</title>
+</head>
+<body>
+    <div class="liveness-container">
+        <div id="liveView" class="videoView">
+            <button id="textbox-pill" class="button">Position your face inside the circle</button>
+            <video id="videoElement" autoplay playsinline></video>
+
+            <div id="progessIndicatorCircle2" class="progessIndicatorCircle2">
+                <div id="pis11" class="progessIndicatorSect2"></div>
+  
+
+            <div id="progessIndicatorCircle" class="progessIndicatorCircle">
+                <div id="pis1" class="progessIndicatorSect"></div>
+                <div id="pis2" class="progessIndicatorSect"></div>
+                <div id="pis3" class="progessIndicatorSect"></div>
+                <div id="pis4" class="progessIndicatorSect"></div>
+                <div id="pis5" class="progessIndicatorSect"></div>
+                <div id="pis6" class="progessIndicatorSect"></div>
+                <div id="pis7" class="progessIndicatorSect"></div>
+                <div id="pis8" class="progessIndicatorSect"></div>
+                <div id="pis9" class="progessIndicatorSect"></div>
+                <div id="pis10" class="progessIndicatorSect"></div>
+                <div id="pis11" class="progessIndicatorSect"></div>
+                <div id="pis12" class="progessIndicatorSect"></div>
+            </div>
+            </div>
+            
+            <div id="ovalOverlay" class="oval-overlay"></div>
+            <canvas id="canvas_mask" style="display: none;"></canvas>
+            <canvas id="myCanvas"></canvas>
+        </div>
+    </div>
+    <button id="startRecording">Start Recording</button>
+    <button id="stopRecording">Stop Recording</button>
+    <button id="downloadRecording">Download Recording</button>
+    <button id="downloadMaskImage">Download Mask</button>
+    <button id="downloadImage">Download Image</button>
+    <script type="module" src="liveness.js"></script>
+    <script type="module" src="tasks-vision.js"></script>
+    <script type="module" src="vision_wasm_internal.js"></script>
+</body>
+</html>
