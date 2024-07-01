@@ -52,16 +52,23 @@ let mouth;
 let left_eye_tragion;
 let right_eye_tragion;
 
+// UI Variables
+const innerCircleRadius = 150;
+const outerCircleRadius = 200;
+
+
 //Configurable Variables
 const minFaceValidScore = 85;
 const minFaceMaskScore = 70;
 const defaultMinFaceAreaRatio = 0.35;
 const defaultMaxFaceAreaRatio = 0.60;
 
+
 //Feature Variables
 let actionStart = false; 
 let currentAction = 0;
 let currentRotation = null;
+let faceInside = false;
 
 
 
@@ -164,8 +171,10 @@ async function predictWebcam() {
             .detections;
         
         const validDetection = getValidFace(detections);
+        toggleFaceUI(validDetection);
 
         if (validDetection){
+            
             const faceSizeRatio = getFaceAreaRatio(validDetection, 150);
             adjustFace(faceSizeRatio);
             
@@ -296,6 +305,55 @@ async function predictWebcam() {
     window.requestAnimationFrame(predictWebcam);
 }
 
+function toggleFaceUI(isFaceValid) {
+    const progessIndicator = document.getElementById('pis11');
+    const progessIndicatorUser = document.getElementById('pis1');
+    const outerCircle = document.getElementById('progessIndicatorCircle2'); // This line can be removed if not used
+
+    if (isFaceValid) {
+        if (outerCircle.classList.contains('invalidFace')) {
+            outerCircle.classList.remove('invalidFace');
+            console.log('Effect removed.');
+        } else {
+            console.log('Effect is not applied.');
+        }
+        if (!progessIndicator.classList.contains('indicatorAffects-Action')) {
+            progessIndicator.classList.add('indicatorAffects-Action');
+            console.log('Effect applied.');
+        } else {
+            console.log('Effect is already applied.');
+        }
+        if (!progessIndicatorUser.classList.contains('indicatorAffects-User')) {
+            progessIndicatorUser.classList.add('indicatorAffects-User');
+            console.log('Effect applied.');
+        } else {
+            console.log('Effect is already applied.');
+        }
+    } else {
+        if (progessIndicatorUser.classList.contains('indicatorAffects-User')) {
+            progessIndicatorUser.classList.remove('indicatorAffects-User');
+            console.log('Effect removed.');
+        } else {
+            console.log('Effect is not applied.');
+        }
+        if (progessIndicator.classList.contains('indicatorAffects-Action')) {
+            progessIndicator.classList.remove('indicatorAffects-Action');
+            console.log('Effect removed.');
+        } else {
+            console.log('Effect is not applied.');
+        }
+        if (!outerCircle.classList.contains('invalidFace')) {
+            outerCircle.classList.add('invalidFace');
+            console.log('Effect applied.');
+        } else {
+            console.log('Effect is already applied.');
+        }
+    }
+
+    // Red glow effect, if you have some implementation for it, you can add it here.
+}
+
+
 function completeAction() {
     const element = document.getElementById('pis1');
     if (element) {
@@ -316,6 +374,7 @@ function completeAction() {
 
 function changeRotation(newRotation) {
     const firstChild = document.getElementById('pis11');
+    firstChild.classList.toggle('indicatorAffects-Action');
     firstChild.style.transform = `rotate(${newRotation}deg) skewY(-45deg)`;
 }
 
@@ -364,7 +423,7 @@ function handleIntensities(yawIntensity, pitchIntensity) {
         let weightedPitch = absPitch * 0.9;
         let ease_constant = 0.0;
         output_intensity = (weightedYaw + weightedPitch) / (1 - ease_constant);
-        console.log('OUTPUT INTENSITY SIDES: ', output_intensity, weightedYaw, weightedPitch)
+        // console.log('OUTPUT INTENSITY SIDES: ', output_intensity, weightedYaw, weightedPitch)
         output_intensity= mapIntensity(output_intensity, 0, 1.0);
     
     if (yawIntensity > 0 && pitchIntensity > 0) {
@@ -579,77 +638,53 @@ function filterDetectionsScore(detections, n) {
     });
 }
 
-function getValidFace(detections){
-
-    
+function getValidFace(detections) {
     let validFaceCount = 0;
-    let validFace;
-    let validFaceDetection;
+    let validFaceDetection = null;
 
     for (let detection of detections) {
-        
-
         let detectionScore = detection.categories[0].score * 100;
-        if ( detectionScore >= minFaceMaskScore){
 
-        let count = 0;
-        validFace = true;
-        for (let keypoint of detection.keypoints) {
-            let y = keypoint.y * video.offsetHeight - 3
-            let x = video.offsetWidth - keypoint.x * video.offsetWidth - 3
+        if (detectionScore >= minFaceMaskScore) {
+            let isValidFace = true;
 
-            const rectWidth = 150;
-            const rectHeight = 150;
-            let isFacePointInMask = isPointInsideOval(x, y, rectWidth, rectHeight) 
+            for (let keypoint of detection.keypoints) {
+                let y = keypoint.y * video.offsetHeight - 3;
+                let x = video.offsetWidth - keypoint.x * video.offsetWidth - 3;
+                
+                console.log('Face Inside: ', faceInside);
+                let isFacePointInMask = faceInside
+                    ? isPointInsideCircle(x, y, outerCircleRadius)
+                    : isPointInsideCircle(x, y, innerCircleRadius);
 
-            //console.log('Keypoint: ', count, ' : ', isFacePointInMask)
-            count = count + 1;
-            if (isFacePointInMask == false){
-
-                validFace = false;
-                break;
-            } else {
-                validFaceDetection = detection;
+                if (!isFacePointInMask) {
+                    isValidFace = false;
+                    faceInside = false;
+                    break;
+                } 
             }
-            
-        }
 
-        if (validFace){
-            validFaceCount +=1;
+            if (isValidFace) {
+                validFaceCount++;
+                validFaceDetection = detection;
+                faceInside = true;
+            }
         }
     }
 
-    }
-
-    //console.log("validFaceCount: ", validFaceCount, validFace);
-
-    if (validFaceCount>1){
-        instructionsTextBox.textContent = "Multiple faces detected"
+    if (validFaceCount > 1) {
+        instructionsTextBox.textContent = "Multiple faces detected";
         return false;
-
-        //console.log('MULTPLE FACES DETECTED !!');
-
-    }else if (validFaceCount == 1){
-        //console.log('FACE DETECTED !!');
-        instructionsTextBox.textContent = "Face found"
+    } else if (validFaceCount === 1) {
+        instructionsTextBox.textContent = "Face found";
         return validFaceDetection;
-
-    }else if (detections.length >= 1){
-        //console.log('Please ensure face is properly inside the OVAL !!');
-        instructionsTextBox.textContent = "Please ensure your face is properly inside the circle"
+    } else if (detections.length >= 1) {
+        instructionsTextBox.textContent = "Please ensure your face is properly inside the circle";
         return false;
-
-    }
-    else{
-        //console.log('FACE NOT FOUND !!');
-        instructionsTextBox.textContent = "Face not found"
+    } else {
+        instructionsTextBox.textContent = "Face not found";
         return false;
-
     }
-
-    return validFaceDetection;
-
-
 }
 
 function drawCircle(){
@@ -686,15 +721,16 @@ function drawCircle(){
     canvas.style.zIndex = '9999';
 }
 
-function isPointInsideOval(x, y, rectWidth, rectHeight) {
+function isPointInsideCircle(x, y, circleRadius) {
 
     const maskCenterX = document.querySelector('.oval-overlay').clientWidth / 2;
     const maskCenterY = document.querySelector('.oval-overlay').clientHeight / 2;
 
     const distance = Math.sqrt((x - maskCenterX) ** 2 + (y - maskCenterY) ** 2);
     
+    console.log('Checking Distance: ', distance, circleRadius);
     // Check if the distance is less than the radius of the circle
-    return distance <= rectWidth;
+    return distance <= circleRadius;
 
     // const width = rectWidth * 2;
     // const height = rectHeight * 2;
