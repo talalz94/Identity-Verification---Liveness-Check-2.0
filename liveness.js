@@ -55,6 +55,16 @@ let right_eye_tragion;
 // UI Variables
 const innerCircleRadius = 150;
 const outerCircleRadius = 200;
+const degreeValues = {
+    3: -22.50,
+    5: 22.50,
+    1: 67.50,
+    6: 112.5,
+    4: 157.5,
+    8: 202.50,
+    2: 247.50,
+    7: 292.50
+};
 
 
 //Configurable Variables
@@ -63,12 +73,19 @@ const minFaceMaskScore = 70;
 const defaultMinFaceAreaRatio = 0.35;
 const defaultMaxFaceAreaRatio = 0.60;
 
-
 //Feature Variables
-let actionStart = false; 
-let currentAction = 0;
-let currentRotation = null;
+let actionStart = false;
+let actionRequired = 0;
+let actionComplete = false;
+let actionInitialize = true;
+let rotationRequired = null;
 let faceInside = false;
+
+//UI Components
+const progessIndicator = document.getElementById('pis11');
+const progessIndicatorUser = document.getElementById('pis1');
+const outerCircle = document.getElementById('progessIndicatorCircle2'); 
+
 
 
 
@@ -142,21 +159,10 @@ async function predictWebcam() {
 
     if (actionStart === false){
 
-        const degreeValues = {
-            3: -22.50,
-            5: 22.50,
-            1: 67.50,
-            6: 112.5,
-            4: 157.5,
-            8: 202.50,
-            2: 247.50,
-            7: 292.50
-        };
-
-        currentAction = generateUniqueAction();
-        currentRotation = degreeValues[currentAction];
-        console.log('Setting up Action: ', currentAction, currentRotation);
-        changeRotation(currentRotation);
+        actionRequired = generateUniqueAction();
+        rotationRequired = degreeValues[actionRequired];
+        console.log('Setting up Action: ', actionRequired, rotationRequired);
+        changeRotation(rotationRequired);
 
         // toggleVisibility(elementId, isVisible);
 
@@ -193,24 +199,44 @@ async function predictWebcam() {
 
             let result = handleIntensities(yawIntensity, pitchIntensity);
 
-            const { section, output_intensity } = result
-            //console.log('Result: ', result, currentRotation, currentAction, section);
+            const { currentAction, output_intensity } = result
+            //console.log('Result: ', output_intensity);
 
-            if (section === currentAction){
+            if (currentAction === actionRequired){
                 let percentage = output_intensity * (50 - 37) + 37;
                 let actionSegment = document.getElementById('pis1')
-                actionSegment.style.transform = `rotate(${currentRotation}deg) skewY(-45deg)`;
+                actionSegment.style.transform = `rotate(${rotationRequired}deg) skewY(-45deg)`;
                 var element= document.querySelector('.progessIndicatorCircle')
                 element.style.clipPath = `circle(${percentage}% at 50% 50%)`;
 
-                if (output_intensity === 1){
-                    if (completeAction){
+                if (output_intensity === 1) {
+                    if (completeAction) {
                         console.log('Setting up new action');
-                        
+                        actionStart = false;
+                        completeActionUI(1);
+                        // Delay execution for 2 seconds
+                        await sleep(1500);
+                        completeActionUI(0);
                     }
-
                 }
+                console.log('Subsequent code executed after 2 seconds');
+
+
     
+            } else if (output_intensity === 0){
+                const progessIndicatorUser = document.getElementById('pis1');
+                if (progessIndicatorUser.classList.contains('indicatorAffects-User')) {
+                    progessIndicatorUser.classList.remove('indicatorAffects-User');
+                }
+            }
+            else {
+                const currentRotation = degreeValues[currentAction];
+                let actionSegment = document.getElementById('pis1')
+                actionSegment.style.transform = `rotate(${currentRotation}deg) skewY(-45deg)`;
+                var element= document.querySelector('.progessIndicatorCircle')
+                element.style.clipPath = `circle(40% at 50% 50%)`;
+
+
             }
             
 
@@ -305,52 +331,61 @@ async function predictWebcam() {
     window.requestAnimationFrame(predictWebcam);
 }
 
+function completeActionUI(status) {
+    const progressIndicator = document.getElementById('pis11');
+    const progressIndicatorUser = document.getElementById('pis1');
+
+    if (status === 1) {
+        progressIndicatorUser.classList.remove('indicatorAffects-User');
+        progressIndicator.classList.remove('indicatorAffects-Action');
+        progressIndicator.classList.add('indicatorAffects-Complete');
+    } else {
+        progressIndicator.classList.remove('indicatorAffects-Complete');
+    }
+}
+
 function toggleFaceUI(isFaceValid) {
     const progessIndicator = document.getElementById('pis11');
     const progessIndicatorUser = document.getElementById('pis1');
-    const outerCircle = document.getElementById('progessIndicatorCircle2'); // This line can be removed if not used
+    const outerCircle = document.getElementById('progessIndicatorCircle2'); 
 
     if (isFaceValid) {
+        // Handle outerCircle invalidFace class
         if (outerCircle.classList.contains('invalidFace')) {
             outerCircle.classList.remove('invalidFace');
-            console.log('Effect removed.');
-        } else {
-            console.log('Effect is not applied.');
+            console.log('Invalid face effect removed.');
         }
+
+        // Handle progessIndicator indicatorAffects-Action class
         if (!progessIndicator.classList.contains('indicatorAffects-Action')) {
             progessIndicator.classList.add('indicatorAffects-Action');
-            console.log('Effect applied.');
-        } else {
-            console.log('Effect is already applied.');
+            console.log('Action effect applied.');
         }
+
+        // Handle progessIndicatorUser indicatorAffects-User class
         if (!progessIndicatorUser.classList.contains('indicatorAffects-User')) {
             progessIndicatorUser.classList.add('indicatorAffects-User');
-            console.log('Effect applied.');
-        } else {
-            console.log('Effect is already applied.');
+            console.log('User effect applied.');
         }
     } else {
+        // Handle progessIndicatorUser indicatorAffects-User class
         if (progessIndicatorUser.classList.contains('indicatorAffects-User')) {
             progessIndicatorUser.classList.remove('indicatorAffects-User');
-            console.log('Effect removed.');
-        } else {
-            console.log('Effect is not applied.');
+            console.log('User effect removed.');
         }
+
+        // Handle progessIndicator indicatorAffects-Action class
         if (progessIndicator.classList.contains('indicatorAffects-Action')) {
             progessIndicator.classList.remove('indicatorAffects-Action');
-            console.log('Effect removed.');
-        } else {
-            console.log('Effect is not applied.');
+            console.log('Action effect removed.');
         }
+
+        // Handle outerCircle invalidFace class
         if (!outerCircle.classList.contains('invalidFace')) {
             outerCircle.classList.add('invalidFace');
-            console.log('Effect applied.');
-        } else {
-            console.log('Effect is already applied.');
+            console.log('Invalid face effect applied.');
         }
     }
-
-    // Red glow effect, if you have some implementation for it, you can add it here.
 }
 
 
@@ -383,36 +418,36 @@ function generateUniqueAction() {
     let newNumber;
     do {
         newNumber = Math.floor(Math.random() * 8) + 1;
-    } while (newNumber === currentAction);
-    currentAction = newNumber;
+    } while (newNumber === actionRequired);
+    actionRequired = newNumber;
     return newNumber;
 }
 
 function handleIntensities(yawIntensity, pitchIntensity) {
 
-    let section = 0;
+    let currentAction = 0;
     let output_intensity = 0;
 
     if (yawIntensity === 0 && pitchIntensity === 0) {
         // console.log("Case 0: Both yaw and pitch intensities are 0.");
     } else if (yawIntensity > 0 && pitchIntensity === 0) {
         // console.log("Case 1: Yaw intensity is between 0 and 1, pitch intensity is 0.");
-        section = 1;
+        currentAction = 1;
         output_intensity = yawIntensity;
 
     } else if (yawIntensity < 0 && pitchIntensity === 0) {
         // console.log("Case 2: Yaw intensity is between -1 and 0, pitch intensity is 0.");
-        section = 2;
+        currentAction = 2;
         output_intensity = yawIntensity;
 
     } else if (yawIntensity === 0 && pitchIntensity > 0) {
         // console.log("Case 3: Yaw intensity is 0, pitch intensity is between 0 and 1.");
-        section = 3;
+        currentAction = 3;
         output_intensity = pitchIntensity;
 
     } else if (yawIntensity === 0 && pitchIntensity < 0) {
         // console.log("Case 4: Yaw intensity is 0, pitch intensity is between -1 and 0.");
-        section = 4;
+        currentAction = 4;
         output_intensity = pitchIntensity;
 
     } else {
@@ -428,23 +463,23 @@ function handleIntensities(yawIntensity, pitchIntensity) {
     
     if (yawIntensity > 0 && pitchIntensity > 0) {
         // console.log("Case 5: Yaw intensity is between 0 and 1, pitch intensity is between 0 and 1.");
-        section = 5;
+        currentAction = 5;
     } else if (yawIntensity > 0 && pitchIntensity < 0) {
         // console.log("Case 6: Yaw intensity is between 0 and 1, pitch intensity is between -1 and 0.");
-        section = 6;
+        currentAction = 6;
     } else if (yawIntensity < 0 && pitchIntensity > 0) {
         // console.log("Case 7: Yaw intensity is between -1 and 0, pitch intensity is between 0 and 1.");
-        section = 7;
+        currentAction = 7;
     } else if (yawIntensity < 0 && pitchIntensity < 0) {
         // console.log("Case 8: Yaw intensity is between -1 and 0, pitch intensity is between -1 and 0.");
-        section = 8;
+        currentAction = 8;
     } else {
         // console.log("Unexpected intensity values.");
 
     }
 }
 output_intensity = Math.abs(output_intensity)
-    return {section, output_intensity};
+    return {currentAction, output_intensity};
 }
 
 function calculateYawIntensity(noseTip, mouth, left_eye, left_eye_tragion, right_eye, right_eye_tragion, faceSizeRatio){
@@ -471,6 +506,10 @@ function calculateYawIntensity(noseTip, mouth, left_eye, left_eye_tragion, right
     }
 
     return yawIntensity;
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function calculatePitchIntensity(noseTip, mouth, left_eye, left_eye_tragion, right_eye, right_eye_tragion, faceSizeRatio){
@@ -652,7 +691,7 @@ function getValidFace(detections) {
                 let y = keypoint.y * video.offsetHeight - 3;
                 let x = video.offsetWidth - keypoint.x * video.offsetWidth - 3;
                 
-                console.log('Face Inside: ', faceInside);
+                //console.log('Face Inside: ', faceInside);
                 let isFacePointInMask = faceInside
                     ? isPointInsideCircle(x, y, outerCircleRadius)
                     : isPointInsideCircle(x, y, innerCircleRadius);
@@ -728,7 +767,7 @@ function isPointInsideCircle(x, y, circleRadius) {
 
     const distance = Math.sqrt((x - maskCenterX) ** 2 + (y - maskCenterY) ** 2);
     
-    console.log('Checking Distance: ', distance, circleRadius);
+    //console.log('Checking Distance: ', distance, circleRadius);
     // Check if the distance is less than the radius of the circle
     return distance <= circleRadius;
 

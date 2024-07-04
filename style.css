@@ -147,8 +147,8 @@ section {
 
 .indicatorAffects-Action{
   transform: rotate(-22.50deg) skewY(-45deg); 
-  background: rgba(43, 237, 0, 0.553); 
-  animation: colorPulse 0.85s infinite, glowPulse 0.85s infinite;
+  background: rgba(237, 71, 209, 0.553); 
+  animation: shockwave 0.85s infinite;;
 
 }
 
@@ -157,9 +157,21 @@ section {
   animation: glowRipple 1.5s infinite;
 }
 
+@keyframes shockwave {
+  0% {
+    box-shadow: 0 0 2px rgba(0,0,0,0.15), inset 0 0 1px rgba(212, 11, 179, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 50px rgba(0,0,0,0), inset 0 0 50px rgba(247, 7, 191, .50);
+  }
+  100% {
+    box-shadow: 0 0 2px rgba(0,0,0,0.15), inset 0 0 1px rgba(250, 7, 149, 0.55);
+  }
+}
+
 @keyframes glowRipple {
   0% {
-    box-shadow: 0 0 10px 5px rgba(255, 0, 0, 0.9);
+    box-shadow: 0 0 10px 5px rgba(255, 72, 0, 0.9);;
     background: rgba(255, 72, 0, 0.9);
   }
   50% {
@@ -167,35 +179,33 @@ section {
     background: rgba(255, 109, 5, 0.8);
   }
   100% {
-    box-shadow: 0 0 10px 5px rgba(255, 0, 0, 0.9);
+    box-shadow: 0 0 10px 5px rgba(255, 72, 0, 0.9);;
     background: rgba(255, 72, 0, 0.9);
   }
 }
-
-
 @keyframes colorPulse {
-    0% {
-        background-color: #2196F3; /* Blue color theme */
-    }
-    50% {
-        background-color: #64B5F6; /* Lighter blue shade */
-    }
-    100% {
-        background-color: #2196F3; /* Blue color theme */
-    }
+  0% {
+      background-color: #b344c6; /* Purple color theme */
+  }
+  50% {
+      background-color: #ce93d8; /* Lighter purple shade */
+  }
+  100% {
+    background-color: #b344c6; /* Purple color theme */  }
 }
 
 @keyframes glowPulse {
-    0% {
-        box-shadow: 0 0 10px 5px rgba(33, 150, 243, 0.7); /* Blue glow color */
-    }
-    50% {
-        box-shadow: 0 0 20px 10px rgba(100, 181, 246, 1); /* Lighter blue glow color */
-    }
-    100% {
-        box-shadow: 0 0 10px 5px rgba(33, 150, 243, 0.7); /* Blue glow color */
-    }
+  0% {
+      box-shadow: 0 0 10px 5px rgba(209, 63, 235, 0.7); /* Purple glow color */
+  }
+  50% {
+      box-shadow: 0 0 20px 10px rgba(206, 147, 216, 1); /* Lighter purple glow color */
+  }
+  100% {
+      box-shadow: 0 0 10px 5px rgba(209, 63, 235, 0.7); /* Purple glow color */  }
 }
+
+
 
 
 .progessIndicatorCircle {
@@ -241,6 +251,29 @@ section {
 
   
 }
+
+.indicatorAffects-Complete {
+  background: rgba(65, 238, 2, 1); /* Green color */
+  animation: fadeToColorless 2s forwards, glowPulse2 2s infinite;
+        }
+
+        @keyframes fadeToColorless {
+            0% {
+                opacity: 1; /* Fully visible */
+            }
+            100% {
+                opacity: 0; /* Fully transparent */
+            }
+        }
+
+        @keyframes glowPulse2 {
+          0%, 100% {
+            box-shadow: 0 0 20px 10px rgba(65, 238, 2, 1); /* Stronger green glow */
+        }
+        50% {
+            box-shadow: 0 0 40px 20px rgba(65, 238, 2, 1); /* Even stronger green glow */
+        }
+        }
 
 .indicatorAffects-User{
   transform: rotate(-22.50deg) skewY(-45deg); 
