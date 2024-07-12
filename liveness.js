@@ -5,7 +5,7 @@ let faceDetector;
 
 let runningMode = "IMAGE";
 let isBlurred = false;
-let alertIsOpen = false;
+let alertIsOpen = true;
 // Initialize the object detector
 const initializefaceDetector = async () => {
 
